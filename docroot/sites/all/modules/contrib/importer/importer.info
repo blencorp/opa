@@ -1,0 +1,16 @@
+
+name = Importer
+description = Module for importing external data into the database with some additional features (see README) 
+dependencies[] = schema
+package = Data visualization
+version = VERSION
+core = 7.x
+
+
+
+; Information added by  packaging script on 2013-11-25
+version = "7.x-1.0-rc3"
+core = "7.x"
+project = "importer"
+datestamp = "1385392411"
+

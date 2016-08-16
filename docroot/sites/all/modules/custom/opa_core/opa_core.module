@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the OPA Core feature.
+ */
+
+include_once 'opa_core.features.inc';

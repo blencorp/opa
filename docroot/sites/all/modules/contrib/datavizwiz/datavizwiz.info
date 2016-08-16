@@ -1,0 +1,6 @@
+name = Data Visualization Wizard
+description = Creates an easy way to visualize two-dimensional data from tables in your database. Supports displaying data in geo-map, summary charts and graphs, searchable listings, downloadable CSV files and detail pages.
+core = 7.x
+package = Data visualization
+stylesheets[all][] = datavizwiz.css
+dependencies[] = schema

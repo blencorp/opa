@@ -1,0 +1,239 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function datavizwiz_schema() {
+  $schema['datavizwiz'] = array(
+    'description' => 'Table for storing additional data for DataVizWiz nodes.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'Node nid.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'connection' => array(
+        'description' => 'Database containing the source table.',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'data_table' => array(
+        'description' => 'Table containing the source data.',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'primary_keys' => array(
+        'description' => 'Primary keys of source table.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'download_formats' => array(
+        'description' => 'Enabled download formats of visualization data.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'fields' => array(
+        'description' => 'Field meta data.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+      'settings' => array(
+        'description' => 'Settings meta data.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+  $schema['datavizwiz_panes'] = array(
+    'description' => 'Table for storing visualization panes for DataVizWiz nodes.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Unique pane id.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'description' => 'Node nid.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'Pane type.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'title' => array(
+        'description' => 'Pane title.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'height' => array(
+        'description' => 'Pane height, in pixels.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'weight' => array(
+        'description' => 'Pane weight to sort panes for a single node.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'data' => array(
+        'description' => 'Serialized pane data.',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'nid' => array('nid'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function datavizwiz_install() {
+  // Create a DataVizWiz content type.
+  $node_type = array(
+    'type' => 'datavizwiz',
+    'name' => st('Data visualization'),
+    'base' => 'node_content',
+    'description' => st('Use <em>DataVizWiz Dataset</em> to visualize data from a database table.'),
+    'custom' => TRUE,
+    'modified' => TRUE,
+    'locked' => FALSE,
+  );
+  $node_type = node_type_set_defaults($node_type);
+  node_type_save($node_type);
+  node_add_body_field($node_type);
+
+  // Enable data visualization for our content type.
+  variable_set('datavizwiz_enabled_datavizwiz', TRUE);
+
+  // Get node type settings.
+  $bundle_settings = field_bundle_settings('node', 'datavizwiz');
+
+  // Enable DataVizWiz Detail view mode.
+  $bundle_settings['view_modes']['datavizwiz_detail']['custom_settings'] = TRUE;
+
+  // Default view mode.
+  $bundle_settings['extra_fields']['display']['datavizwiz_panes']['default'] = array('visible' => TRUE, 'weight' => 0);
+  $bundle_settings['extra_fields']['display']['datavizwiz_download_links']['default'] = array('visible' => TRUE, 'weight' => 1);
+  $bundle_settings['extra_fields']['display']['datavizwiz_filter_form']['default'] = array('visible' => TRUE, 'weight' => 2);
+  $bundle_settings['extra_fields']['display']['datavizwiz_summary_table']['default'] = array('visible' => TRUE, 'weight' => 3);
+  $bundle_settings['extra_fields']['display']['datavizwiz_details']['default'] = array('visible' => FALSE, 'weight' => '');
+
+  // Details view mode.
+  $bundle_settings['extra_fields']['display']['datavizwiz_panes']['datavizwiz_detail'] = array('visible' => FALSE, 'weight' => '');
+  $bundle_settings['extra_fields']['display']['datavizwiz_download_links']['datavizwiz_detail'] = array('visible' => FALSE, 'weight' => '');
+  $bundle_settings['extra_fields']['display']['datavizwiz_filter_form']['datavizwiz_detail'] = array('visible' => FALSE, 'weight' => '');
+  $bundle_settings['extra_fields']['display']['datavizwiz_summary_table']['datavizwiz_detail'] = array('visible' => FALSE, 'weight' => '');
+  $bundle_settings['extra_fields']['display']['datavizwiz_details']['datavizwiz_detail'] = array('visible' => TRUE, 'weight' => 0);
+
+  // Save.
+  field_bundle_settings('node', 'datavizwiz', $bundle_settings);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function datavizwiz_uninstall() {
+  // Clear content type variables.
+  foreach (array_keys(node_type_get_names()) as $type) {
+    variable_del("datavizwiz_enabled_$type");
+  }
+}
+
+/**
+ * Set "popup pan" option on map panes.
+ */
+function datavizwiz_update_7000() {
+  // Loop through all map panes and set the popup_pan value to FALSE.
+  $panes = db_query("SELECT id, data FROM {datavizwiz_panes} WHERE type = 'datavizwiz_map'")->fetchAll();
+  foreach ($panes as $pane) {
+    $pane->data = unserialize($pane->data);
+    $pane->data['popup_pan'] = FALSE;
+    db_query("UPDATE {datavizwiz_panes} SET data = :data WHERE id = :id", array(
+      ':data' => serialize($pane->data),
+      ':id' => $pane->id,
+    ));
+  }
+}
+
+/**
+ * Set "minimum zoom" option on map panes.
+ */
+function datavizwiz_update_7001() {
+  // Loop through all map panes and set the zoom_minimum value to 0, and
+  // rename zoom to zoom_initial.
+  $panes = db_query("SELECT id, data FROM {datavizwiz_panes} WHERE type = 'datavizwiz_map'")->fetchAll();
+  foreach ($panes as $pane) {
+    $pane->data = unserialize($pane->data);
+    $pane->data['zoom_minimum'] = 0;
+    $pane->data['zoom_initial'] = $pane->data['zoom'];
+    unset($pane->data['zoom']);
+    db_query("UPDATE {datavizwiz_panes} SET data = :data WHERE id = :id", array(
+      ':data' => serialize($pane->data),
+      ':id' => $pane->id,
+    ));
+  }
+}
+
+/**
+ * Move "summary limit" option from its own field to new settings field.
+ */
+function datavizwiz_update_7002() {
+  // Add settings field.
+  db_add_field('datavizwiz', 'settings', array(
+    'description' => 'Settings meta data.',
+    'type' => 'text',
+    'not null' => FALSE,
+  ));
+
+  // Save summary_limit to settings array.
+  $rows = db_query("SELECT nid, summary_limit, settings FROM {datavizwiz}")->fetchAll();
+  foreach ($rows as $row) {
+    $row->settings = !empty($row->settings) ? unserialize($row->settings) : array();
+    $row->settings['summary_limit'] = $row->summary_limit;
+    db_query("UPDATE {datavizwiz} SET settings = :settings WHERE nid = :nid", array(
+      ':settings' => serialize($row->settings),
+      ':nid' => $row->nid,
+    ));
+  }
+
+  // Drop summary_limit table.
+  db_drop_field('datavizwiz', 'summary_limit');
+}
+
+/**
+ * Rename "data" field setting to "download", and set "data" default.
+ */
+function datavizwiz_update_7003() {
+  $rows = db_query("SELECT nid, fields FROM {datavizwiz}")->fetchAll();
+  foreach ($rows as $row) {
+    $row->fields = !empty($row->fields) ? unserialize($row->fields) : array();
+    foreach ($row->fields as $field_name => $field) {
+      $row->fields[$field_name]['download'] = isset($row->fields[$field_name]['data']) ? $row->fields[$field_name]['data'] : FALSE;
+      $row->fields[$field_name]['data'] = TRUE;
+    }
+    db_query("UPDATE {datavizwiz} SET fields = :fields WHERE nid = :nid", array(
+      ':fields' => serialize($row->fields),
+      ':nid' => $row->nid,
+    ));
+  }
+}

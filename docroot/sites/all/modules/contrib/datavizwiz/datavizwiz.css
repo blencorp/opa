@@ -1,0 +1,158 @@
+/* Panes */
+
+.datavizwiz-panes-menu .item-list ul {
+  padding: 0;
+}
+
+.datavizwiz-panes-menu .item-list li {
+  float: left;
+  background-image: none;
+  list-style-type: none;
+  padding: 0;
+  margin-right: .5em;
+}
+
+.datavizwiz-panes-menu a {
+  display: block;
+  font-size: .95em;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+  padding: 0.5em 1.3em;
+  color: #777;
+}
+
+.datavizwiz-panes-menu a:link {
+  text-decoration: none;
+}
+
+.datavizwiz-panes-menu a:hover {
+  color: #777;
+  background-color: #eee;
+}
+
+.datavizwiz-panes-menu a.active {
+  background-color: #eaeaea;
+  color: #000;
+}
+
+/* Map pane */
+
+.datavizwiz-pane-datavizwiz-map {
+  position: relative;
+  overflow: hidden;
+}
+
+.datavizwiz-map-popup-title,
+.datavizwiz-map-popup-content {
+  font-size: .9em;
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.olPopup .datavizwiz-map-popup-title,
+.olPopup .datavizwiz-map-popup-content {
+  color: #000;
+}
+
+.olPopup .datavizwiz-map-popup-title {
+  font-weight: bold;
+}
+
+.olPopup .datavizwiz-map-popup-content {
+  margin-bottom: 10px;
+}
+
+.datavizwiz-map-hoverbox {
+  position: absolute;
+  display: none;
+  bottom: 10px;
+  right: 10px;
+  padding: 10px;
+  background-color: black;
+  z-index: 10000;
+  opacity: .8;
+  color: #ffffff;
+  font-size: .9em;
+}
+
+/* Pie graph pane */
+
+.datavizwiz-pane-datavizwiz-pie-graph .legend table {
+  width: auto;
+}
+
+.datavizwiz-pane-datavizwiz-pie-graph .legendCount {
+  text-align: center;
+}
+
+.datavizwiz-pane-datavizwiz-pie-graph .legendPercent {
+  text-align: right;
+}
+
+.datavizwiz-pane-datavizwiz-pie-graph .datavizwiz-pie-label {
+  font-size: .9em;
+  width: 150px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Bar chart */
+
+.datavizwiz-pane-datavizwiz-bar-chart .legend table {
+  width: auto;
+}
+
+/* Download format links */
+
+.datavizwiz-download-links .item-list ul {
+  padding-left: 0;
+}
+
+.datavizwiz-download-links .item-list li {
+  background-image: none;
+  display: inline;
+  list-style-type: none;
+  padding: 0.5em;
+}
+
+.datavizwiz-download-links .item-list li.first {
+  padding-left: 0;
+}
+
+/* Filter form */
+
+.datavizwiz-filter-form .container-inline .form-item {
+  display: inline-block;
+}
+
+.datavizwiz-filter-form .container-inline label {
+  display: block;
+}
+
+/* Detail page */
+
+.datavizwiz-go-back {
+  margin-bottom: 20px;
+}
+
+.datavizwiz-detail-field {
+  float: left;
+  width: 49.5%;
+  margin: 0 1% 15px 0;
+}
+
+.datavizwiz-detail-field:nth-child(even) {
+  margin-right: 0;
+}
+
+.datavizwiz-detail-wide {
+  width: 100%;
+}
+
+.datavizwiz-detail-label {
+  font-weight: bold;
+  border-bottom: 1px #EFEFEF solid;
+}
+
+.datavizwiz-detail-value {
+  margin-top: 5px;
+}

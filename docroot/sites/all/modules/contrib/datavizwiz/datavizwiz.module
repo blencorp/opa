@@ -1,0 +1,934 @@
+<?php
+
+/******************************************************************************
+  Hooks
+******************************************************************************/
+
+/**
+ * Implements hook_permission().
+ */
+function datavizwiz_permission() {
+  $permissions['administer datavizwiz'] = array(
+    'title' => t('Administer DataVizWiz'),
+    'description' => t('Grants access to "Manage dataset" tabs on DataVizWiz nodes.'),
+    'restrict access' => TRUE,
+  );
+  return $permissions;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function datavizwiz_menu() {
+  // Node tabs.
+  $items['node/%node/datavizwiz/manage'] = array(
+    'type' => MENU_LOCAL_TASK,
+    'title' => 'Data visualization',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_fields_form', 1),
+    'file' => 'includes/fields.inc',
+    'weight' => 1,
+  );
+  $items['node/%node/datavizwiz/manage/fields'] = array(
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'title' => 'Fields',
+  );
+  $items['node/%node/datavizwiz/manage/panes'] = array(
+    'type' => MENU_LOCAL_TASK,
+    'title' => 'Panes',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_panes_form', 1),
+    'file' => 'includes/panes.inc',
+    'weight' => 1,
+  );
+  $items['node/%node/datavizwiz/manage/panes/add'] = array(
+    'type' => MENU_LOCAL_ACTION,
+    'title' => 'Add pane',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_pane_form', 1),
+    'file' => 'includes/panes.inc',
+    'weight' => 1,
+  );
+  $items['node/%node/datavizwiz/manage/panes/%'] = array(
+    'title' => 'Edit pane',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_pane_form', 1, 5),
+    'file' => 'includes/panes.inc',
+  );
+  $items['node/%node/datavizwiz/manage/panes/%/delete'] = array(
+    'title' => 'Delete pane',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_pane_delete_form', 1, 5),
+    'file' => 'includes/panes.inc',
+  );
+  $items['node/%node/datavizwiz/manage/filter-form'] = array(
+    'type' => MENU_LOCAL_TASK,
+    'title' => 'Filter form',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_filter_form_form', 1),
+    'file' => 'includes/fields.inc',
+    'weight' => 2,
+  );
+  $items['node/%node/datavizwiz/manage/summary-table'] = array(
+    'type' => MENU_LOCAL_TASK,
+    'title' => 'Summary table',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_summary_table_form', 1),
+    'file' => 'includes/fields.inc',
+    'weight' => 3,
+  );
+  $items['node/%node/datavizwiz/manage/detail-page'] = array(
+    'type' => MENU_LOCAL_TASK,
+    'title' => 'Detail page',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_detail_page_form', 1),
+    'file' => 'includes/fields.inc',
+    'weight' => 4,
+  );
+  $items['node/%node/datavizwiz/manage/data'] = array(
+    'type' => MENU_LOCAL_TASK,
+    'title' => 'Data',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_data_table_form', 1),
+    'file' => 'includes/data.inc',
+    'weight' => 5,
+  );
+  $items['node/%node/datavizwiz/manage/data/add'] = array(
+    'type' => MENU_LOCAL_ACTION,
+    'title' => 'Add data row',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_data_row_form', 1),
+    'file' => 'includes/data.inc',
+  );
+  $items['node/%node/datavizwiz/manage/data/edit'] = array(
+    'title' => 'Edit data row',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_data_row_form', 1),
+    'file' => 'includes/data.inc',
+  );
+  $items['node/%node/datavizwiz/manage/data/delete'] = array(
+    'title' => 'Delete data row',
+    'access callback' => 'datavizwiz_manage_access',
+    'access arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('datavizwiz_data_delete_form', 1),
+    'file' => 'includes/data.inc',
+  );
+
+  // Pages.
+  $items['node/%node/datavizwiz/detail'] = array(
+    'type' => MENU_LOCAL_ACTION,
+    'context' => MENU_CONTEXT_INLINE,
+    'access callback' => 'datavizwiz_detail_access',
+    'access arguments' => array(1),
+    'page callback' => 'datavizwiz_detail',
+    'page arguments' => array(1),
+    'file' => 'includes/pages.inc',
+  );
+  $items['node/%node/datavizwiz/download/%'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 1),
+    'page callback' => 'datavizwiz_download',
+    'page arguments' => array(1, 4),
+    'file' => 'includes/pages.inc',
+  );
+  $items['node/%node/datavizwiz/autocomplete/%'] = array(
+    'type' => MENU_CALLBACK,
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 1),
+    'page callback' => 'datavizwiz_autocomplete',
+    'page arguments' => array(1, 4),
+    'file' => 'includes/pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function datavizwiz_admin_paths() {
+  // Define certain as admin paths.
+  $paths['node/*/datavizwiz/manage*'] = TRUE;
+  return $paths;
+}
+
+/**
+ * Implements hook_help().
+ */
+function datavizwiz_help($path, $arg) {
+  switch ($path) {
+    case 'node/%/datavizwiz/manage':
+      return '<p>' . t('Give each field a custom display name and enable fields for various displays. The "download" checkbox includes a field in the download exports. The "data" checkbox includes a field on the <a href="!data">data page</a>. The "primary" checkbox flags a field as a primary key (if no primary keys are already set on the table).', array(
+        '!data' => url("node/{$arg[1]}/datavizwiz/manage/data"),
+      )) . '</p>';
+    case 'node/%/datavizwiz/manage/panes':
+      return '<p>' . t('Add visualization panes by clicking <a href="!add-pane">Add pane</a>. You can also sort the order of the panes on this page.', array(
+        '!add-pane' => url("node/{$arg[1]}/datavizwiz/manage/panes/add"),
+      )) . '</p>';
+    case 'node/%/datavizwiz/manage/filter-form':
+      return '<p>' . t('Configure the filter form by setting the type of filter for each field you want enabled. They will appear in the order you set here. The field label will use the display name, unless overwritten with the "label" field. When the form is submitted, the URL key will be the field name, unless overwritten with the "URL key" field. Note: the following field names are reserved and should use a different URL key: "q", "page", "sort", and "order".') . '</p>';
+    case 'node/%/datavizwiz/manage/summary-table':
+      return '<p>' . t('Enable the fields to appear on the summary table. They will appear in the order you set here. The field label will use the display name, unless overwritten with the "label" field. The "sortable" checkbox enables sorting on this field, and the "link to detail" checkbox turns this field into a link to the <a href="!detail-page">detail page</a>.', array(
+        '!detail-page' => url("node/{$arg[1]}/datavizwiz/manage/detail-page"),
+      )) . '</p>';
+    case 'node/%/datavizwiz/manage/detail-page':
+      return '<p>' . t('Enable the fields to appear on the detail page. They will appear in the order you set here. The field label will use the display name, unless overwritten with the "label" field. The "title" radio sets the page title, and the "wide display" checkbox displays the field in its own column, as opposed to the two-column layout. Click the "Hide if empty" checkbox to not display the field if it contains an empty string, and the "0 is empty" checkbox to not display the field if it contains a zero value.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function datavizwiz_theme() {
+  // Admin forms.
+  $theme['datavizwiz_fields_form'] = array(
+    'render element' => 'form',
+  );
+  $theme['datavizwiz_panes_form'] = array(
+    'render element' => 'form',
+  );
+  $theme['datavizwiz_filter_form_form'] = array(
+    'render element' => 'form',
+  );
+  $theme['datavizwiz_summary_table_form'] = array(
+    'render element' => 'form',
+  );
+  $theme['datavizwiz_detail_page_form'] = array(
+    'render element' => 'form',
+  );
+
+  // Front-end stuff.
+  $base = array(
+    'path' => drupal_get_path('module', 'datavizwiz') . '/theme',
+    'file' => 'theme.inc',
+  );
+  $theme['datavizwiz_panes'] = $base + array(
+    'template' => 'datavizwiz-panes',
+    'variables' => array('node' => NULL),
+  );
+  $theme['datavizwiz_download_links'] = $base + array(
+    'template' => 'datavizwiz-download-links',
+    'variables' => array('node' => NULL),
+  );
+  $theme['datavizwiz_summary_table'] = $base + array(
+    'template' => 'datavizwiz-summary-table',
+    'variables' => array('node' => NULL),
+  );
+  $theme['datavizwiz_details'] = $base + array(
+    'template' => 'datavizwiz-details',
+    'variables' => array('node' => NULL, 'set_page_title' => FALSE),
+  );
+  return $theme;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function datavizwiz_field_extra_fields() {
+  // Add display fields to each DataVizWiz-enabled content type.
+  foreach (array_keys(node_type_get_names()) as $type) {
+    if (variable_get("datavizwiz_enabled_$type", FALSE)) {
+      $extra['node'][$type] = array(
+        'display' => array(
+          'datavizwiz_panes' => array(
+            'label' => t('DataVizWiz panes'),
+            'weight' => 1,
+          ),
+          'datavizwiz_download_links' => array(
+            'label' => t('DataVizWiz download links'),
+            'weight' => 2,
+          ),
+          'datavizwiz_filter_form' => array(
+            'label' => t('DataVizWiz filter form'),
+            'weight' => 4,
+          ),
+          'datavizwiz_summary_table' => array(
+            'label' => t('DataVizWiz summary table'),
+            'weight' => 4,
+          ),
+          'datavizwiz_details' => array(
+            'label' => t('DataVizWiz details'),
+            'weight' => 1,
+          ),
+        ),
+      );
+    }
+  }
+  return $extra;
+}
+
+/**
+* Implements hook_entity_info_alter().
+*/
+function datavizwiz_entity_info_alter(&$entity_info) {
+  // Add Detail view mode.
+  $entity_info['node']['view modes']['datavizwiz_detail'] = array(
+    'label' => t('DataVizWiz Detail'),
+    'custom settings' => FALSE,
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for node_type_form.
+ */
+function datavizwiz_form_node_type_form_alter(&$form, &$form_state, $form_id) {
+  // Add setting to enable/disable this content type for data visualization.
+  $form['datavizwiz'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('DataVizWiz settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'datavizwiz') . '/js/datavizwiz.content-type.js'),
+    ),
+  );
+  $form['datavizwiz']['datavizwiz_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable data visualization'),
+    '#description' => t('If checked, data visualization tools will be attached to this content type.'),
+    '#default_value' => variable_get("datavizwiz_enabled_{$form['#node_type']->type}", FALSE),
+  );
+
+  // Clear field cache so extra fields gets updated for enabled/disabled types.
+  $form['#submit'][] = 'field_cache_clear';
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for node_form.
+ */
+function datavizwiz_form_node_form_alter(&$form, &$form_state, $form_id) {
+  $node = $form['#node'];
+
+  // Skip unless content type is DataVizWiz-enabled.
+  if (!variable_get("datavizwiz_enabled_$node->type", FALSE)) {
+    return;
+  }
+
+  // Fieldset.
+  $form['datavizwiz'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('DataVizWiz settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#group' => 'additional_settings',
+    '#weight' => $node->type == 'datavizwiz' ? -10 : 0,
+    '#tree' => TRUE,
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'datavizwiz') . '/js/datavizwiz.node.js'),
+    ),
+  );
+
+  // Get database connections.
+  $connections = schema_get_connection_options();
+
+  // Determine active connection, either from Ajax, or from node.
+  $connection = !empty($form_state['values']['datavizwiz']['connection'])
+    ? $form_state['values']['datavizwiz']['connection']
+    : (!empty($node->datavizwiz['connection']) ? $node->datavizwiz['connection'] : 'default');
+
+  // Get tables for this connection.
+  $tables = schema_dbobject($connection)->inspect();
+
+  // Fields.
+  $form['datavizwiz']['connection'] = array(
+    '#type' => 'select',
+    '#title' => t('Database connection'),
+    '#description' => t('Database connection containing the data table.'),
+    '#options' => $connections,
+    '#default_value' => $connection,
+    '#access' => count($connections) > 1,
+    '#ajax' => array(
+      'callback' => 'datavizwiz_data_table_js',
+      'wrapper' => 'datavizwiz-data-table',
+    ),
+    '#required' => TRUE,
+  );
+  $form['datavizwiz']['data_table'] = array(
+    '#type' => 'select',
+    '#title' => t('Data table'),
+    '#description' => t('Table containing the source data. Note: changing this will reset all visualization settings for this node.'),
+    '#options' => drupal_map_assoc(array('') + array_keys($tables)),
+    '#default_value' => isset($node->datavizwiz['data_table']) ? $node->datavizwiz['data_table'] : '',
+    '#prefix' => '<div id="datavizwiz-data-table">',
+    '#suffix' => '</div>',
+    '#required' => TRUE,
+  );
+
+  $options = array();
+  foreach (datavizwiz_download_formats() as $key => $download_format) {
+    $options[$key] = $download_format['title'];
+  }
+  $form['datavizwiz']['download_formats'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Download formats'),
+    '#options' => $options,
+    '#default_value' => isset($node->datavizwiz['download_formats']) ? $node->datavizwiz['download_formats'] : array('csv', 'geojson', 'json', 'xml'),
+    '#description' => t('Enabled download formats of visualization data.'),
+  );
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function datavizwiz_node_insert($node) {
+  // Skip unless content type is DataVizWiz-enabled.
+  if (!variable_get("datavizwiz_enabled_$node->type", FALSE)) {
+    return;
+  }
+
+  // Save DataVizWiz settings.
+  db_insert('datavizwiz')
+    ->fields(array(
+      'nid' => $node->nid,
+      'connection' => $node->datavizwiz['connection'],
+      'data_table' => $node->datavizwiz['data_table'],
+      'download_formats' => serialize($node->datavizwiz['download_formats']),
+    ))
+    ->execute();
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function datavizwiz_node_update($node) {
+  // Skip unless content type is DataVizWiz-enabled.
+  if (!variable_get("datavizwiz_enabled_$node->type", FALSE)) {
+    return;
+  }
+
+  $fields = array(
+    'connection' => $node->datavizwiz['connection'],
+    'data_table' => $node->datavizwiz['data_table'],
+    'download_formats' => serialize($node->datavizwiz['download_formats']),
+  );
+
+  // If connection or table changed, reset primary keys and field settings, and
+  // delete panes.
+  if (empty($node->original->datavizwiz['data_table']) || $node->datavizwiz['connection'] != $node->original->datavizwiz['connection'] || $node->datavizwiz['data_table'] != $node->original->datavizwiz['data_table']) {
+    $fields['primary_keys'] = NULL;
+    $fields['fields'] = NULL;
+    db_delete('datavizwiz_panes')->condition('nid', $node->nid)->execute();
+  }
+
+  // Update DataVizWiz settings.
+  db_merge('datavizwiz')
+    ->key(array('nid' => $node->nid))
+    ->fields($fields)
+    ->execute();
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function datavizwiz_node_delete($node) {
+  // Skip unless content type is DataVizWiz-enabled.
+  if (!variable_get("datavizwiz_enabled_$node->type", FALSE)) {
+    return;
+  }
+
+  // Delete DataVizWiz settings.
+  db_delete('datavizwiz')->condition('nid', $node->nid)->execute();
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function datavizwiz_node_load($nodes, $types) {
+  // Skip unless one type is DataVizWiz-enabled.
+  $skip = TRUE;
+  foreach ($types as $type) {
+    if (variable_get("datavizwiz_enabled_$type", FALSE)) {
+      $skip = FALSE;
+      break;
+    }
+  }
+  if ($skip) {
+    return;
+  }
+
+  // Load DataVizWiz settings and panes for these nodes.
+  $settings = db_query("SELECT * FROM {datavizwiz} WHERE nid IN (:nids)", array(
+    ':nids' => array_keys($nodes),
+  ));
+  $panes = db_query("SELECT * FROM {datavizwiz_panes} WHERE nid IN (:nids) ORDER BY weight", array(
+    ':nids' => array_keys($nodes),
+  ))->fetchAllAssoc('id', PDO::FETCH_ASSOC);
+
+  // Add DataVizWiz to each node.
+  foreach ($settings as $record) {
+    // Unserialize primary keys, download formats, field settings, and
+    // additional settings.
+    $record->primary_keys = !empty($record->primary_keys) ? unserialize($record->primary_keys) : array();
+    $record->download_formats = unserialize($record->download_formats);
+    $record->fields = !empty($record->fields) ? unserialize($record->fields) : array();
+    $record->settings = !empty($record->settings) ? unserialize($record->settings) : array();
+
+    // If primary keys is empty, attempt to retrieve them from schema.
+    if (empty($record->primary_keys)) {
+      $schemas = schema_dbobject($record->connection)->inspect(NULL, $record->data_table);
+      if (!empty($schemas[$record->data_table]['primary key'])) {
+        $record->primary_keys = $schemas[$record->data_table]['primary key'];
+      }
+    }
+
+    // Build sort array of summary, detail and sort fields, and array of data
+    // and download fields.
+    $record->summary_field_order = array();
+    $record->detail_field_order = array();
+    $record->filter_field_order = array();
+    $record->data_fields = array();
+    $record->download_fields = array();
+    foreach ($record->fields as $field_name => $field) {
+      if (!empty($field['summary'])) {
+        $record->summary_field_order[$field_name] = isset($field['summary_weight']) ? $field['summary_weight'] : 0;
+      }
+      if (!empty($field['detail'])) {
+        $record->detail_field_order[$field_name] = isset($field['detail_weight']) ? $field['detail_weight'] : 0;
+      }
+      if (!empty($field['filter'])) {
+        $record->filter_field_order[$field_name] = isset($field['filter_weight']) ? $field['filter_weight'] : 0;
+      }
+      $record->data_fields[$field_name] = isset($field['data']) ? $field['data'] : TRUE;
+      if (!empty($field['download'])) {
+        $record->download_fields[$field_name] = TRUE;
+      }
+    }
+
+    // Sort summary, detail, and filter fields by weight.
+    asort($record->summary_field_order);
+    asort($record->detail_field_order);
+    asort($record->filter_field_order);
+
+    // Get panes.
+    $record->panes = array();
+    foreach ($panes as $pane) {
+      if ($pane['nid'] == $record->nid) {
+        $pane['data'] = unserialize($pane['data']);
+        $record->panes[$pane['id']] = $pane;
+      }
+    }
+
+    // Attach to node.
+    $nodes[$record->nid]->datavizwiz = (array) $record;
+  }
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function datavizwiz_node_view($node, $view_mode) {
+  // Skip unless content type is DataVizWiz-enabled.
+  if (!variable_get("datavizwiz_enabled_$node->type", FALSE)) {
+    return;
+  }
+
+  // Get field settings for this node's view mode.
+  $fields = field_extra_fields_get_display('node', $node->type, $view_mode);
+
+  // Render enabled fields.
+  foreach (array('panes', 'download_links', 'filter_form', 'summary_table', 'details') as $field) {
+    $field_name = "datavizwiz_$field";
+    if (!empty($fields[$field_name]['visible'])) {
+      if ($field == 'filter_form') {
+        $node->content[$field_name] = drupal_get_form('datavizwiz_filter_form', $node);
+      }
+      else if ($field == 'details') {
+        $node->content[$field_name]['#markup'] = theme($field_name, array('node' => $node, 'set_page_title' => TRUE));
+      }
+      else {
+        $node->content[$field_name]['#markup'] = theme($field_name, array('node' => $node));
+      }
+    }
+  }
+
+  return $node;
+}
+
+/**
+ * Implements hook_preprocess_HOOK on template_preprocess_node().
+ */
+function datavizwiz_preprocess_node(&$variables) {
+  // Set page variable for our detail view mode to prevent it from rendering as
+  // a teaser.
+  if (variable_get("datavizwiz_enabled_{$variables['type']}") && $variables['view_mode'] == 'datavizwiz_detail') {
+    $variables['page'] = TRUE;
+  }
+}
+
+/******************************************************************************
+  Our own hooks
+******************************************************************************/
+
+/**
+ * Implements hook_datavizwiz_pane_types().
+ */
+function datavizwiz_datavizwiz_pane_types() {
+  $types['map'] = array(
+    'title' => t('Map'),
+    'form' => 'datavizwiz_pane_map_form',
+    'render' => 'datavizwiz_pane_map_render',
+    'file' => 'includes/pane-types.inc',
+  );
+  $types['pie_graph'] = array(
+    'title' => t('Pie graph'),
+    'form' => 'datavizwiz_pane_pie_graph_form',
+    'render' => 'datavizwiz_pane_pie_graph_render',
+    'file' => 'includes/pane-types.inc',
+  );
+  $types['bar_chart'] = array(
+    'title' => t('Bar chart'),
+    'form' => 'datavizwiz_pane_bar_chart_form',
+    'render' => 'datavizwiz_pane_bar_chart_render',
+    'file' => 'includes/pane-types.inc',
+  );
+  $types['text'] = array(
+    'title' => t('Custom text'),
+    'form' => 'datavizwiz_pane_text_form',
+    'render' => 'datavizwiz_pane_text_render',
+    'file' => 'includes/pane-types.inc',
+  );
+  return $types;
+}
+
+/**
+ * Implements hook_datavizwiz_download_formats().
+ */
+function datavizwiz_datavizwiz_download_formats() {
+  $formats['csv'] = array(
+    'title' => t('CSV'),
+    'render' => 'datavizwiz_download_format_csv',
+    'image' => 'images/csv.png',
+    'file' => 'includes/download-formats.inc',
+  );
+  $formats['geojson'] = array(
+    'title' => t('GeoJSON'),
+    'render' => 'datavizwiz_download_format_geojson',
+    'image' => 'images/geojson.png',
+    'file' => 'includes/download-formats.inc',
+  );
+  $formats['json'] = array(
+    'title' => t('JSON'),
+    'render' => 'datavizwiz_download_format_json',
+    'image' => 'images/json.png',
+    'file' => 'includes/download-formats.inc',
+  );
+  $formats['xml'] = array(
+    'title' => t('XML'),
+    'render' => 'datavizwiz_download_format_xml',
+    'image' => 'images/xml.png',
+    'file' => 'includes/download-formats.inc',
+  );
+  return $formats;
+}
+
+/**
+ * Implements hook_datavizwiz_download_access_alter().
+ */
+function datavizwiz_datavizwiz_download_access_alter(&$access, $context) {
+  // Enable GeoJSON for our map pane type.
+  if ($context['format'] == 'datavizwiz_geojson' && isset($_GET['token']) && drupal_valid_token($_GET['token'], 'datavizwiz-map')) {
+    $access = TRUE;
+  }
+}
+
+/******************************************************************************
+  Access callbacks
+******************************************************************************/
+
+/**
+ * Manage dataset pages - access callback.
+ */
+function datavizwiz_manage_access($node) {
+  // Return TRUE if content type is DataVizWiz-enabled and user has permission.
+  return variable_get("datavizwiz_enabled_$node->type", FALSE) && user_access('administer datavizwiz');
+}
+
+/**
+ * Detail page - access callback.
+ */
+function datavizwiz_detail_access($node) {
+  // Return TRUE if content type is datavizwiz and user has view permission.
+  return $node->type == 'datavizwiz' && node_access('view', $node);
+}
+
+/******************************************************************************
+  Ajax callbacks
+******************************************************************************/
+
+/**
+ * Ajax callback for data table options on node form.
+ */
+function datavizwiz_data_table_js($form, $form_state) {
+  return $form['datavizwiz']['data_table'];
+}
+
+/**
+ * Ajax callback for pane options on pane form.
+ */
+function datavizwiz_pane_data_js($form, $form_state) {
+  return $form['data'];
+}
+
+/******************************************************************************
+  Filter form stuff
+******************************************************************************/
+
+/**
+ * Filter form.
+ */
+function datavizwiz_filter_form($form, $form_state, $node) {
+  // Skip if no fields are enabled for filtering.
+  if (empty($node->datavizwiz['filter_field_order'])) {
+    return $form;
+  }
+
+  // Wrap fields in a fieldset.
+  $form['fields'] = array(
+    '#type' => 'fieldset',
+    '#description' => !empty($node->datavizwiz['settings']['filter_description'])
+      ? check_markup($node->datavizwiz['settings']['filter_description']['value'], $node->datavizwiz['settings']['filter_description']['format'])
+      : NULL,
+    '#attributes' => array('class' => array('container-inline')),
+    '#title' => t('Filter by'),
+  );
+
+  foreach ($node->datavizwiz['filter_field_order'] as $field_name => $filter_weight) {
+    // Use filter key if available; otherwise, use field name.
+    $filter_key = !empty($node->datavizwiz['fields'][$field_name]['filter_key'])
+      ? $node->datavizwiz['fields'][$field_name]['filter_key']
+      : $field_name;
+
+    // Use filter label if available; otherwise, use display name.
+    $label = !empty($node->datavizwiz['fields'][$field_name]['filter_label'])
+      ? $node->datavizwiz['fields'][$field_name]['filter_label']
+      : $node->datavizwiz['fields'][$field_name]['display_name'];
+
+    // Text fields.
+    if ($node->datavizwiz['fields'][$field_name]['filter'] == 'textfield') {
+      $form['fields'][$filter_key] = array(
+        '#title' => check_plain($label),
+        '#type' => 'textfield',
+        '#size' => 20,
+        '#default_value' => isset($_GET[$filter_key]) ? $_GET[$filter_key] : '',
+        '#autocomplete_path' => "node/$node->nid/datavizwiz/autocomplete/$field_name",
+      );
+      continue;
+    }
+
+    // Get distinct list of values for selects and checkboxes.
+    db_set_active($node->datavizwiz['connection']);
+    $query = db_select($node->datavizwiz['data_table'], 't');
+    $query->addField('t', $field_name, "alias_$field_name");
+    $query->distinct();
+    $query->orderBy("alias_$field_name");
+    $options = $query->execute()->fetchCol();
+    db_set_active();
+
+    // Convert options to associative array, filtering out NULL values.
+    $options = drupal_map_assoc(array_filter($options, 'strlen'));
+
+    // Selects.
+    if ($node->datavizwiz['fields'][$field_name]['filter'] == 'select') {
+      $form['fields'][$filter_key] = array(
+        '#title' => $label,
+        '#type' => 'select',
+        '#options' => array('' => '- ' . t('All') . '-') + $options,
+        '#default_value' => isset($_GET[$filter_key]) ? $_GET[$filter_key] : '',
+      );
+    }
+
+    // Checkboxes.
+    else if ($node->datavizwiz['fields'][$field_name]['filter'] == 'checkboxes') {
+      $form['fields'][$filter_key] = array(
+        '#title' => $label,
+        '#type' => 'checkboxes',
+        '#options' => $options,
+        '#default_value' => isset($_GET[$filter_key]) ? $_GET[$filter_key] : array(),
+      );
+    }
+  }
+
+  // Use empty #name so the submit button value isn't included in URL later.
+  $form['fields']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => !empty($node->datavizwiz['settings']['filter_submit']) ? $node->datavizwiz['settings']['filter_submit'] : t('Filter'),
+    '#name' => '',
+  );
+
+  // Show reset link if form has been submitted.
+  $values = array_diff_key($_GET, array_flip(array('q', 'page', 'sort', 'order')));
+  if (!empty($values)) {
+    $form['fields']['reset']['#markup'] = l(!empty($node->datavizwiz['settings']['filter_reset']) ? $node->datavizwiz['settings']['filter_reset'] : t('Reset'), "node/$node->nid");
+  }
+
+  $form['#attributes']['class'][] = 'datavizwiz-filter-form';
+  $form['#method'] = 'get';
+  $form['#after_build'][] = 'datavizwiz_filter_form_after_build';
+  return $form;
+}
+
+/**
+ * Filter form - after build.
+ */
+function datavizwiz_filter_form_after_build($form) {
+  // Remove stuff that looks ugly in URLs.
+  unset($form['form_build_id'], $form['form_token'], $form['form_id']);
+  return $form;
+}
+
+/**
+ * Applies URL filters to a query.
+ *
+ * @param $node
+ *   A node object.
+ * @param $query
+ *   A database query object.
+ */
+function datavizwiz_query_apply_filter($node, $query) {
+  // Loop through each query parameters.
+  foreach ($_GET as $filter_key => $value) {
+    // Skip keys used for path (q), pagination (page), and table sorting (sort
+    // and order).
+    if (in_array($filter_key, array('q', 'page', 'sort', 'order'))) {
+      continue;
+    }
+
+    // Find filter key's related field.
+    $condition_field = $filter_key;
+    foreach ($node->datavizwiz['filter_field_order'] as $field_name => $filter_weight) {
+      if ($node->datavizwiz['fields'][$field_name]['filter_key'] == $filter_key) {
+        $condition_field = $field_name;
+        break;
+      }
+    }
+
+    // Skip fields not enabled for filtering, or empty-string values.
+    if (!array_key_exists($condition_field, $node->datavizwiz['filter_field_order']) || $value == '') {
+      continue;
+    }
+
+    // Add condition based on type of filter.
+    switch ($node->datavizwiz['fields'][$condition_field]['filter']) {
+      case 'textfield':
+        $query->condition("t.$condition_field", '%' . db_like($value) . '%', 'LIKE');
+        break;
+      case 'select':
+        $query->condition("t.$condition_field", $value);
+        break;
+      case 'checkboxes':
+        $query->condition("t.$condition_field", $value, 'IN');
+        break;
+    }
+  }
+}
+
+/******************************************************************************
+  Utilities
+******************************************************************************/
+
+/**
+ * Returns pane types.
+ */
+function datavizwiz_pane_types() {
+  static $types;
+  if (!isset($types)) {
+    $types = array();
+    foreach (module_implements('datavizwiz_pane_types') as $module) {
+      $additions = module_invoke($module, 'datavizwiz_pane_types');
+      foreach ($additions as $key => $addition) {
+        $addition['module'] = $module;
+        $types["{$module}_{$key}"] = $addition;
+      }
+    }
+    drupal_alter('datavizwiz_pane_types', $types);
+  }
+  return $types;
+}
+
+/**
+ * Returns download formats.
+ */
+function datavizwiz_download_formats() {
+  static $formats;
+  if (!isset($formats)) {
+    $formats = array();
+    foreach (module_implements('datavizwiz_download_formats') as $module) {
+      $additions = module_invoke($module, 'datavizwiz_download_formats');
+      foreach ($additions as $key => $addition) {
+        $addition['module'] = $module;
+        $formats["{$module}_{$key}"] = $addition;
+      }
+    }
+    drupal_alter('datavizwiz_download_formats', $formats);
+  }
+  return $formats;
+}
+
+/**
+ * Returns path for data row using primary keys.
+ *
+ * @param $node
+ *   A node object.
+ * @param $result
+ *   A database result set.
+ * @param $type
+ *   A string containing "view", "edit", or "delete".
+ */
+function datavizwiz_detail_path($node, $result, $type = 'view') {
+  // Build list of primary key values.
+  $key_values = array();
+  foreach ($node->datavizwiz['primary_keys'] as $key) {
+    $key_values[] = $result->$key;
+  }
+
+  $keys = join('/', $key_values);
+
+  // Return appropriate URL.
+  switch ($type) {
+    case 'view':
+      return "node/$node->nid/datavizwiz/detail/$keys";
+    case 'edit':
+      return "node/$node->nid/datavizwiz/manage/data/edit/$keys";
+    case 'delete':
+      return "node/$node->nid/datavizwiz/manage/data/delete/$keys";
+  }
+}
+
+/**
+ * Removes aliases from result set field names.
+ *
+ * @param $result
+ *   A database result set.
+ */
+function datavizwiz_remove_aliases($result) {
+  foreach (get_object_vars($result) as $key => $value) {
+    $new_key = preg_replace('/^alias_/', '', $key);
+    $result->$new_key = $result->$key;
+    unset($result->$key);
+  }
+}
